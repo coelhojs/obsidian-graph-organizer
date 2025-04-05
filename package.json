@@ -12,7 +12,7 @@
     "@types/node": "^22.14.0",
     "builtin-modules": "^5.0.0",
     "esbuild": "^0.25.2",
-    "obsidian": "^1.8.7",
+    "obsidian": "latest",
     "tslib": "^2.8.1",
     "typescript": "^5.8.2"
   },
@@ -28,7 +28,7 @@
     "graph",
     "organize"
   ],
-  "author": "",
+  "author": "Cristiano Souza (@coelhojs)",
   "license": "MIT",
   "description": "Automatically organizes files based on graph relationships in Obsidian"
 }
