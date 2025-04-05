@@ -26,18 +26,15 @@ export class SettingsTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                 }));
 
+        // Force organization strategy to by-links
+        this.plugin.settings.organizationStrategy = 'by-links';
+        
         new Setting(containerEl)
             .setName('Organization Strategy')
-            .setDesc('How to organize files based on graph relationships')
-            .addDropdown(dropdown => dropdown
-                .addOption('by-links', 'By Links')
-                .addOption('by-clusters', 'By Clusters')
-                .addOption('by-tags', 'By Tags')
-                .setValue(this.plugin.settings.organizationStrategy)
-                .onChange(async (value) => {
-                    this.plugin.settings.organizationStrategy = value;
-                    await this.plugin.saveSettings();
-                }));
+            .setDesc('Files are organized based on their link relationships')
+            .addText(text => text
+                .setValue('By Links (Default)')
+                .setDisabled(true));
 
         new Setting(containerEl)
             .setName('Git Integration')
@@ -49,6 +46,37 @@ export class SettingsTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                 }));
                 
+        // Add folder exclusion/targeting settings
+        containerEl.createEl('h3', { text: 'Folder Settings' });
+        
+        new Setting(containerEl)
+            .setName('Target Folders')
+            .setDesc('Only organize files in these folders (leave empty for all folders)')
+            .addTextArea(text => text
+                .setValue(this.plugin.settings.targetFolders.join('\n'))
+                .setPlaceholder('folder1\nfolder2/subfolder')
+                .onChange(async (value) => {
+                    this.plugin.settings.targetFolders = value
+                        .split('\n')
+                        .map(line => line.trim())
+                        .filter(line => line.length > 0);
+                    await this.plugin.saveSettings();
+                }));
+                
+        new Setting(containerEl)
+            .setName('Excluded Folders')
+            .setDesc('Do not organize files in these folders')
+            .addTextArea(text => text
+                .setValue(this.plugin.settings.excludedFolders.join('\n'))
+                .setPlaceholder('folder1\nfolder2/subfolder')
+                .onChange(async (value) => {
+                    this.plugin.settings.excludedFolders = value
+                        .split('\n')
+                        .map(line => line.trim())
+                        .filter(line => line.length > 0);
+                    await this.plugin.saveSettings();
+                }));
+        
         // Add a section for advanced settings
         containerEl.createEl('h3', { text: 'Advanced Settings' });
         

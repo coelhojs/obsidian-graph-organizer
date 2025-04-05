@@ -1,4 +1,4 @@
-import { Plugin, Notice } from 'obsidian';
+import { Plugin, Notice, TFile, debounce } from 'obsidian';
 import { GraphManager } from '../features/graph/graphManager';
 import { FileManager } from '../features/files/fileManager';
 import { GitManager } from '../features/git/gitManager';
@@ -11,6 +11,23 @@ export default class GraphOrganizerPlugin extends Plugin {
     graphManager: GraphManager;
     fileManager: FileManager;
     gitManager: GitManager;
+    
+    // Define debounced auto-organization function
+    private debouncedAutoOrganize = debounce(
+        async () => {
+            try {
+                Logger.info('Auto-organizing files after changes');
+                await this.fileManager.organizeFiles(false);
+                if (this.settings.gitIntegration) {
+                    await this.gitManager.commitOrganizationChanges('Auto-organized files');
+                }
+            } catch (error) {
+                Logger.error('Auto-organization failed', error);
+            }
+        },
+        30000, // 30 second delay to allow for multiple edits
+        true
+    );
 
     async onload() {
         try {
@@ -55,6 +72,12 @@ export default class GraphOrganizerPlugin extends Plugin {
             // Add settings tab
             Logger.info('Adding settings tab...');
             this.addSettingTab(new SettingsTab(this.app, this));
+            
+            // Add event listeners for auto-organization
+            if (this.settings.autoOrganize) {
+                this.registerFileEvents();
+                Logger.info('Auto-organization enabled, registered file event handlers');
+            }
             
             // Add commands
             Logger.info('Registering commands...');
@@ -112,7 +135,8 @@ export default class GraphOrganizerPlugin extends Plugin {
     onunload() {
         Logger.info('Unloading Graph Organizer plugin');
         try {
-            // Clean up resources if needed
+            // Clean up event listeners and resources
+            // The plugin system will take care of unregistering events
             Logger.info('Graph Organizer plugin unloaded successfully');
         } catch (error) {
             Logger.error('Error unloading Graph Organizer plugin', error);
@@ -134,9 +158,52 @@ export default class GraphOrganizerPlugin extends Plugin {
         try {
             await this.saveData(this.settings);
             Logger.info('Settings saved successfully');
+            
+            // Update auto-organization when settings change
+            if (this.settings.autoOrganize) {
+                this.registerFileEvents();
+                Logger.info('Auto-organization enabled, registered file event handlers');
+            } else {
+                Logger.info('Auto-organization disabled');
+            }
         } catch (error) {
             Logger.error('Error saving settings', error);
             new Notice('Failed to save settings');
         }
+    }
+    
+    /**
+     * Register event handlers for auto-organization
+     */
+    private registerFileEvents() {
+        // File modified event
+        this.registerEvent(
+            this.app.vault.on('modify', (file) => {
+                if (file instanceof TFile && file.extension === 'md') {
+                    Logger.debug(`File modified: ${file.path}, scheduling auto-organization`);
+                    this.debouncedAutoOrganize();
+                }
+            })
+        );
+        
+        // File created event
+        this.registerEvent(
+            this.app.vault.on('create', (file) => {
+                if (file instanceof TFile && file.extension === 'md') {
+                    Logger.debug(`File created: ${file.path}, scheduling auto-organization`);
+                    this.debouncedAutoOrganize();
+                }
+            })
+        );
+        
+        // File deleted event - might need reorganization if references change
+        this.registerEvent(
+            this.app.vault.on('delete', (file) => {
+                if (file instanceof TFile && file.extension === 'md') {
+                    Logger.debug(`File deleted: ${file.path}, scheduling auto-organization`);
+                    this.debouncedAutoOrganize();
+                }
+            })
+        );
     }
 }

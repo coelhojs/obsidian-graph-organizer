@@ -2,6 +2,9 @@
 
 An Obsidian plugin that automatically organizes files based on graph relationships.
 
+## TODO:
+- make the empty files (and the ones with only desktop.ini) be deleted in the organization process
+
 ## Features
 
 - Organize files based on their connections in the graph
