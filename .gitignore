@@ -1,0 +1,26 @@
+# Build output
+build/
+main.js
+
+# Dependencies
+node_modules/
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+
+# Logs
+*.log
+npm-debug.log*
+
+# Testing
+coverage/
+
+# Temporary files
+.tmp/
+.temp/ 
