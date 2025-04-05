@@ -4,6 +4,7 @@ export interface PluginSettings {
     gitIntegration: boolean;
     targetFolders: string[];
     excludedFolders: string[];
+    debugMode: boolean;
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
@@ -11,5 +12,6 @@ export const DEFAULT_SETTINGS: PluginSettings = {
     organizationStrategy: 'by-links',
     gitIntegration: false,
     targetFolders: [],
-    excludedFolders: []
+    excludedFolders: [],
+    debugMode: false
 };

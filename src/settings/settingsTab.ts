@@ -1,5 +1,6 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
 import GraphOrganizerPlugin from '../core/main';
+import { Logger } from '../util/logger';
 
 export class SettingsTab extends PluginSettingTab {
     plugin: GraphOrganizerPlugin;
@@ -46,6 +47,31 @@ export class SettingsTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     this.plugin.settings.gitIntegration = value;
                     await this.plugin.saveSettings();
+                }));
+                
+        // Add a section for advanced settings
+        containerEl.createEl('h3', { text: 'Advanced Settings' });
+        
+        new Setting(containerEl)
+            .setName('Debug Mode')
+            .setDesc('Enable detailed logging for troubleshooting')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.debugMode)
+                .onChange(async (value) => {
+                    this.plugin.settings.debugMode = value;
+                    Logger.setDebugMode(value);
+                    Logger.info(`Debug mode ${value ? 'enabled' : 'disabled'}`);
+                    await this.plugin.saveSettings();
+                }));
+                
+        // Add a button to view debug logs
+        new Setting(containerEl)
+            .setName('Debug Logs')
+            .setDesc('View recent debug logs')
+            .addButton(button => button
+                .setButtonText('View Logs')
+                .onClick(() => {
+                    Logger.showLogsInNotice(20);
                 }));
     }
 }
